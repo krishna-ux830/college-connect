@@ -10,7 +10,6 @@ import CreatePoll from "./components/polls/CreatePoll"
 import Profile from "./components/profile/Profile"
 import UserProfile from "./components/profile/UserProfile"
 import NotFound from "./components/common/NotFound"
-import "./App.css"
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -27,9 +26,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="app">
+        <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
-          <main className="container">
+          <main className="container mx-auto px-4 py-8 flex-grow">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

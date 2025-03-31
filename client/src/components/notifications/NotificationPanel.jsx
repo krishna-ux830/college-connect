@@ -67,62 +67,91 @@ const NotificationPanel = () => {
     switch (type) {
       case "Post":
         return (
-          <div className="notification-content">
-            <span className="notification-icon post-icon">📝</span>
-            <div className="notification-text">
-              <strong>{content.author.username}</strong> shared a new post:
-              <p className="notification-excerpt">{content.content.substring(0, 50)}...</p>
+          <div className="flex items-start space-x-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              📝
+            </span>
+            <div className="flex-1">
+              <p className="text-sm text-text-primary">
+                <span className="font-medium">{content.author.username}</span> shared a new post:
+              </p>
+              <p className="text-sm text-text-secondary mt-1 line-clamp-2">
+                {content.content.substring(0, 50)}...
+              </p>
             </div>
           </div>
         )
       case "Poll":
         return (
-          <div className="notification-content">
-            <span className="notification-icon poll-icon">📊</span>
-            <div className="notification-text">
-              <strong>{content.author.username}</strong> created a new poll:
-              <p className="notification-excerpt">{content.question}</p>
+          <div className="flex items-start space-x-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              📊
+            </span>
+            <div className="flex-1">
+              <p className="text-sm text-text-primary">
+                <span className="font-medium">{content.author.username}</span> created a new poll:
+              </p>
+              <p className="text-sm text-text-secondary mt-1 line-clamp-2">
+                {content.question}
+              </p>
             </div>
           </div>
         )
       default:
         console.log("Unknown notification type:", type)
         return (
-          <div className="notification-content">
-            <span className="notification-icon">🔔</span>
-            <div className="notification-text">You have a new notification</div>
+          <div className="flex items-start space-x-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              🔔
+            </span>
+            <div className="text-sm text-text-primary">
+              You have a new notification
+            </div>
           </div>
         )
     }
   }
 
   return (
-    <div className="notification-panel">
-      <h2>Notifications</h2>
+    <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto">
+      <h2 className="text-lg font-semibold text-text-primary mb-4">Notifications</h2>
 
       {loading ? (
-        <div className="loading">Loading notifications...</div>
+        <div className="text-center py-8 text-text-secondary">
+          Loading notifications...
+        </div>
       ) : error ? (
-        <div className="error">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm">
+          {error}
+        </div>
       ) : notifications.length === 0 ? (
-        <div className="empty-state">
-          <p>No notifications yet.</p>
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-text-secondary">No notifications yet.</p>
         </div>
       ) : (
-        <div className="notification-list">
+        <div className="space-y-3">
           {notifications.map((notification) => (
             <div
               key={notification._id}
-              className={`notification-item ${notification.read ? "read" : "unread"} ${notification.priority ? "priority" : ""}`}
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                notification.read 
+                  ? "bg-white border-border hover:bg-gray-50" 
+                  : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+              } ${
+                notification.priority 
+                  ? "border-l-4 border-faculty" 
+                  : ""
+              }`}
               onClick={() => handleNotificationClick(notification)}
-              style={{ cursor: "pointer" }}
             >
               {renderNotificationContent(notification)}
-              <div className="notification-meta">
-                <span className="notification-time">
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-xs text-text-secondary">
                   {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                 </span>
-                {!notification.read && <span className="unread-indicator"></span>}
+                {!notification.read && (
+                  <span className="w-2 h-2 bg-primary rounded-full"></span>
+                )}
               </div>
             </div>
           ))}

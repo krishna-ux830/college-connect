@@ -95,14 +95,23 @@ const CreatePoll = () => {
   }
 
   return (
-    <div className="create-poll">
-      <h2>Create a New Poll</h2>
+    <div className="bg-white rounded-lg shadow-sm p-6 max-w-2xl mx-auto">
+      <h2 className="text-xl font-semibold text-text-primary mb-6">Create a New Poll</h2>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm mb-6">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="question">Question</label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label 
+            htmlFor="question" 
+            className="block text-sm font-medium text-text-primary mb-2"
+          >
+            Question
+          </label>
           <input
             type="text"
             id="question"
@@ -110,22 +119,30 @@ const CreatePoll = () => {
             onChange={handleQuestionChange}
             placeholder="Ask a question..."
             required
+            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
           />
         </div>
 
-        <div className="form-group">
-          <label>Options</label>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            Options
+          </label>
           {formData.options.map((option, index) => (
-            <div key={index} className="option-input">
+            <div key={index} className="flex items-center gap-2">
               <input
                 type="text"
                 value={option}
                 onChange={(e) => handleOptionChange(index, e.target.value)}
                 placeholder={`Option ${index + 1}`}
                 required
+                className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               />
               {formData.options.length > 2 && (
-                <button type="button" className="remove-option" onClick={() => removeOption(index)}>
+                <button
+                  type="button"
+                  onClick={() => removeOption(index)}
+                  className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                >
                   Remove
                 </button>
               )}
@@ -133,17 +150,29 @@ const CreatePoll = () => {
           ))}
 
           {formData.options.length < 10 && (
-            <button type="button" className="btn btn-secondary add-option" onClick={addOption}>
+            <button
+              type="button"
+              onClick={addOption}
+              className="w-full px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+            >
               Add Option
             </button>
           )}
         </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+        <div className="flex justify-end space-x-4 pt-4">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-4 py-2 text-sm font-medium text-text-secondary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {loading ? "Creating Poll..." : "Create Poll"}
           </button>
         </div>

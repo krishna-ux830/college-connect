@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import SearchBar from "../common/SearchBar"
@@ -7,60 +8,149 @@ import SearchBar from "../common/SearchBar"
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    navigate("/login")
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate("/login")
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
+
+  // Close dropdown when clicking outside
+  const handleClickOutside = (e) => {
+    if (!e.target.closest('.user-dropdown')) {
+      setIsDropdownOpen(false)
+    }
+  }
+
+  // Add click outside listener
+  useState(() => {
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
+  const getRoleColor = (role) => {
+    switch (role) {
+      case 'student':
+        return 'bg-blue-100 text-blue-800'
+      case 'faculty':
+        return 'bg-purple-100 text-purple-800'
+      case 'admin':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
   }
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          Campus Connect
-        </Link>
+    <nav className="bg-white shadow-sm">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="text-2xl font-bold text-primary hover:text-primary-hover transition-colors">
+            Campus Connect
+          </Link>
 
-        {isAuthenticated ? (
-          <div className="navbar-menu">
-            <SearchBar />
-            <Link to="/" className="nav-item">
-              Home
-            </Link>
-            <Link to={`/user/${user?.username}`} className="nav-item">
-              Profile
-            </Link>
-            <div className="nav-item user-menu">
-              <div className="user-avatar">
-                {user?.profilePic ? (
-                  <img src={user.profilePic || "/placeholder.svg"} alt={user.username} />
-                ) : (
-                  <div className="avatar-placeholder">{user?.username.charAt(0).toUpperCase()}</div>
+          {isAuthenticated ? (
+            <div className="flex items-center space-x-6">
+              <SearchBar />
+              <Link to="/" className="text-text-secondary hover:text-primary transition-colors">
+                Home
+              </Link>
+              <Link to={`/user/${user?.username}`} className="text-text-secondary hover:text-primary transition-colors">
+                Profile
+              </Link>
+              <div className="relative user-dropdown">
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center focus:outline-none"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-text-primary font-semibold">
+                    {user?.profilePic ? (
+                      <img 
+                        src={user.profilePic || "/placeholder.svg"} 
+                        alt={user.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{user?.username.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-border overflow-hidden">
+                    {/* User Info Section */}
+                    <div className="px-4 py-3 border-b border-border bg-gray-50">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-text-primary font-semibold">
+                          {user?.profilePic ? (
+                            <img 
+                              src={user.profilePic} 
+                              alt={user.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span>{user?.username.charAt(0).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-text-primary">{user?.username}</div>
+                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user?.role)}`}>
+                            {user?.role}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <Link 
+                        to="/profile" 
+                        className="flex items-center px-4 py-2 text-sm text-text-primary hover:bg-gray-50"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Edit Profile
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          setIsDropdownOpen(false)
+                          handleLogout()
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-error hover:bg-red-50"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Logout
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="dropdown-menu">
-                <div className="dropdown-header">
-                  <span>{user?.username}</span>
-                  <small>{user?.role}</small>
-                </div>
-                <Link to="/profile" className="dropdown-item">
-                  Edit Profile
-                </Link>
-                <button onClick={handleLogout} className="dropdown-item logout">
-                  Logout
-                </button>
-              </div>
             </div>
-          </div>
-        ) : (
-          <div className="navbar-menu">
-            <Link to="/login" className="nav-item">
-              Login
-            </Link>
-            <Link to="/register" className="nav-item">
-              Register
-            </Link>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center space-x-6">
+              <Link 
+                to="/login" 
+                className="text-text-secondary hover:text-primary transition-colors"
+              >
+                Login
+              </Link>
+              <Link 
+                to="/register" 
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   )

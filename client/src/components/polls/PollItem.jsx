@@ -53,49 +53,83 @@ const PollItem = ({ poll, id, onDelete }) => {
   }
 
   return (
-    <div id={id} className={`poll-item ${isFacultyPoll ? "faculty-poll" : ""}`}>
-      {isFacultyPoll && <div className="faculty-badge">Faculty Poll</div>}
-
-      <div className="poll-header">
-        <div className="poll-author">
-          <Link to={`/user/${author.username}`} className="author-avatar">
+    <div 
+      id={id} 
+      className={`bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto ${
+        isFacultyPoll ? "border-l-4 border-faculty" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <Link to={`/user/${author.username}`} className="flex-shrink-0">
             {author.profilePic ? (
-              <img src={author.profilePic || "/placeholder.svg"} alt={author.username} />
+              <img 
+                src={author.profilePic || "/placeholder.svg"} 
+                alt={author.username}
+                className="w-8 h-8 rounded-full object-cover"
+              />
             ) : (
-              <div className="avatar-placeholder">{author.username.charAt(0).toUpperCase()}</div>
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium">
+                {author.username.charAt(0).toUpperCase()}
+              </div>
             )}
           </Link>
-          <div className="author-info">
-            <Link to={`/user/${author.username}`} className="author-name">
+          <div>
+            <Link 
+              to={`/user/${author.username}`} 
+              className="font-medium text-text-primary hover:text-primary transition-colors text-sm"
+            >
               <h3>{author.username}</h3>
             </Link>
-            <span className="poll-time">{formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
+            <span className="text-xs text-text-secondary">
+              {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+            </span>
           </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          {isFacultyPoll && (
+            <div className="px-2 py-0.5 text-xs font-medium text-faculty bg-faculty/10 rounded-full">
+              Faculty Poll
+            </div>
+          )}
           {isOwner && (
-            <button className="delete-button" onClick={handleDelete}>
-              <FaTrash className="text-xl" />
+            <button 
+              onClick={handleDelete} 
+              className="text-text-secondary hover:text-error transition-colors"
+            >
+              <FaTrash className="text-base" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="poll-content">
-        <h3 className="poll-question">{question}</h3>
+      <div className="space-y-3">
+        <h3 className="text-text-primary text-sm font-medium">{question}</h3>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
-        <div className="poll-options">
+        <div className="space-y-2">
           {pollOptions.map((option) => {
             const percentage = totalVotes > 0 ? Math.round((option.voteCount / totalVotes) * 100) : 0
 
             return (
               <div
                 key={option._id}
-                className={`poll-option ${hasVoted ? "voted" : ""} ${selectedOption === option._id ? "selected" : ""}`}
+                className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                  hasVoted 
+                    ? "border-border cursor-default" 
+                    : selectedOption === option._id 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-primary hover:bg-primary/5"
+                }`}
                 onClick={() => !hasVoted && setSelectedOption(option._id)}
               >
-                <div className="option-content">
-                  <div className="option-text">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
                     {!hasVoted && (
                       <input
                         type="radio"
@@ -103,21 +137,25 @@ const PollItem = ({ poll, id, onDelete }) => {
                         checked={selectedOption === option._id}
                         onChange={() => setSelectedOption(option._id)}
                         disabled={hasVoted}
+                        className="w-4 h-4 text-primary border-border focus:ring-primary"
                       />
                     )}
-                    <span>{option.text}</span>
+                    <span className="text-sm text-text-primary">{option.text}</span>
                   </div>
 
                   {hasVoted && (
-                    <div className="vote-count">
+                    <div className="text-xs text-text-secondary">
                       {option.voteCount} vote{option.voteCount !== 1 ? "s" : ""} ({percentage}%)
                     </div>
                   )}
                 </div>
 
                 {hasVoted && (
-                  <div className="vote-bar">
-                    <div className="vote-progress" style={{ width: `${percentage}%` }}></div>
+                  <div className="h-1 bg-border rounded-full mt-2 overflow-hidden">
+                    <div 
+                      className="h-full bg-primary rounded-full transition-all duration-300"
+                      style={{ width: `${percentage}%` }}
+                    />
                   </div>
                 )}
               </div>
@@ -126,12 +164,20 @@ const PollItem = ({ poll, id, onDelete }) => {
         </div>
 
         {!hasVoted && (
-          <button className="btn btn-primary vote-button" disabled={!selectedOption || loading} onClick={handleVote}>
+          <button 
+            className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            disabled={!selectedOption || loading} 
+            onClick={handleVote}
+          >
             {loading ? "Submitting..." : "Vote"}
           </button>
         )}
 
-        {hasVoted && <div className="total-votes">Total votes: {totalVotes}</div>}
+        {hasVoted && (
+          <div className="text-xs text-text-secondary text-right">
+            Total votes: {totalVotes}
+          </div>
+        )}
       </div>
     </div>
   )

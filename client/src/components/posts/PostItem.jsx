@@ -4,7 +4,6 @@ import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "../../contexts/AuthContext"
 import { Link } from "react-router-dom"
 import api from "../../services/api"
-import '../../styles/components/PostItem.css';
 
 const PostItem = ({ post, id, onDelete }) => {
   const { user } = useAuth()
@@ -29,51 +28,83 @@ const PostItem = ({ post, id, onDelete }) => {
   }
 
   return (
-    <div id={id} className={`post-item ${isFacultyPost ? "faculty-post" : ""}`}>
-      {isFacultyPost && <div className="faculty-badge">Faculty</div>}
-
-      <div className="post-header">
-        <div className="post-author">
-          <Link to={`/user/${author.username}`} className="author-avatar">
+    <div 
+      id={id} 
+      className={`bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto ${
+        isFacultyPost ? "border-l-4 border-faculty" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <Link to={`/user/${author.username}`} className="flex-shrink-0">
             {author.profilePic ? (
-              <img src={author.profilePic || "/placeholder.svg"} alt={author.username} />
+              <img 
+                src={author.profilePic || "/placeholder.svg"} 
+                alt={author.username}
+                className="w-8 h-8 rounded-full object-cover"
+              />
             ) : (
-              <div className="avatar-placeholder">{author.username.charAt(0).toUpperCase()}</div>
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium">
+                {author.username.charAt(0).toUpperCase()}
+              </div>
             )}
           </Link>
-          <div className="author-info">
-            <Link to={`/user/${author.username}`} className="author-name">
+          <div>
+            <Link 
+              to={`/user/${author.username}`} 
+              className="font-medium text-text-primary hover:text-primary transition-colors text-sm"
+            >
               <h3>{author.username}</h3>
             </Link>
-            <span className="post-time">{formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
+            <span className="text-xs text-text-secondary">
+              {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+            </span>
           </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          {isFacultyPost && (
+            <div className="bg-purple-100 text-purple-800 px-2 py-0.5 text-xs font-medium text-faculty bg-faculty/10 rounded-full">
+              Faculty
+            </div>
+          )}
           {isOwner && (
-            <button className="delete-button" onClick={handleDelete} disabled={isDeleting}>
-              <FaTrash className="text-xl" />
+            <button 
+              onClick={handleDelete} 
+              disabled={isDeleting}
+              className="text-text-secondary hover:text-error transition-colors disabled:opacity-50"
+            >
+              <FaTrash className="text-base" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="post-content">
-        <p>{content}</p>
+      <div className="space-y-3">
+        <p className="text-text-primary text-sm whitespace-pre-wrap">{content}</p>
 
         {image && (
-          <div className="post-image">
-            <img src={image || "/placeholder.svg"} alt="Post attachment" />
+          <div className="rounded-lg overflow-hidden max-h-[400px]">
+            <img 
+              src={image || "/placeholder.svg"} 
+              alt="Post attachment"
+              className="w-full h-full object-contain"
+            />
           </div>
         )}
       </div>
 
-      <div className="post-actions">
-        <button className="action-button">
-          <i className="far fa-heart"></i> Like
+      <div className="flex items-center space-x-4 mt-3 pt-3 border-t border-border">
+        <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors text-sm">
+          <i className="far fa-heart"></i>
+          <span>Like</span>
         </button>
-        <button className="action-button">
-          <i className="far fa-comment"></i> Comment
+        <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors text-sm">
+          <i className="far fa-comment"></i>
+          <span>Comment</span>
         </button>
-        <button className="action-button">
-          <i className="far fa-share-square"></i> Share
+        <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors text-sm">
+          <i className="far fa-share-square"></i>
+          <span>Share</span>
         </button>
       </div>
     </div>

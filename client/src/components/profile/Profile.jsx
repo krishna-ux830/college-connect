@@ -86,25 +86,25 @@ const Profile = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Profile</h2>
+      <h2 className="text-2xl font-bold text-text-primary mb-6">Edit Profile</h2>
       
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
           {success}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-border p-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Picture Section */}
           <div className="flex flex-col items-center space-y-4">
-            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100">
+            <div className="relative w-40 h-40 rounded-full overflow-hidden bg-gray-100 border-4 border-border">
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -112,12 +112,12 @@ const Profile = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-600">
+                <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-text-secondary">
                   {user?.username.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-            <label className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <label className="cursor-pointer bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium">
               Change Photo
               <input
                 type="file"
@@ -131,7 +131,7 @@ const Profile = () => {
           {/* Form Fields */}
           <div className="flex-1 space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-text-primary mb-2">
                 Username
               </label>
               <input
@@ -141,12 +141,12 @@ const Profile = () => {
                 value={formData.username}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
                 Email
               </label>
               <input
@@ -157,18 +157,18 @@ const Profile = () => {
                 onChange={handleChange}
                 required
                 placeholder="username@iiitg.ac.in"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-base"
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-text-secondary">
                 Only IIIT Guwahati email addresses are allowed
               </p>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-6">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base font-medium"
               >
                 {loading ? "Updating..." : "Update Profile"}
               </button>

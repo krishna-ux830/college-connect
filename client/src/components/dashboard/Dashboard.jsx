@@ -7,6 +7,7 @@ import api from "../../services/api"
 import PostItem from "../posts/PostItem"
 import PollItem from "../polls/PollItem"
 import NotificationPanel from "../notifications/NotificationPanel"
+import Footer from "../layout/Footer"
 
 const Dashboard = () => {
   const { user } = useAuth()
@@ -82,58 +83,96 @@ const Dashboard = () => {
   })
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Welcome, {user?.username}!</h1>
-        <div className="action-buttons">
-          <Link to="/create-post" className="btn btn-primary">
-            Create Post
-          </Link>
-          <Link to="/create-poll" className="btn btn-secondary">
-            Create Poll
-          </Link>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <h1 className="text-2xl font-bold text-text-primary mb-4 md:mb-0">
+            Welcome, {user?.username}!
+          </h1>
+          <div className="flex gap-4">
+            <Link 
+              to="/create-post" 
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
+            >
+              Create Post
+            </Link>
+            <Link 
+              to="/create-poll" 
+              className="bg-primary/90 text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
+            >
+              Create Poll
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex border-b border-border mb-6">
+          <button 
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === "feed"
+                ? "text-primary border-b-2 border-primary"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+            onClick={() => setActiveTab("feed")}
+          >
+            Feed
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === "notifications"
+                ? "text-primary border-b-2 border-primary"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+            onClick={() => setActiveTab("notifications")}
+          >
+            Notifications
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {activeTab === "feed" ? (
+            <div>
+              {loading ? (
+                <div className="text-center py-8 text-text-secondary">
+                  Loading content...
+                </div>
+              ) : error ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                  {error}
+                </div>
+              ) : combinedContent.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+                  <p className="text-text-secondary">
+                    No posts or polls yet. Be the first to share something!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {combinedContent.map((item) =>
+                    item.question ? (
+                      <PollItem 
+                        key={`poll-${item._id}`} 
+                        id={`poll-${item._id}`} 
+                        poll={item} 
+                        onDelete={handlePollDelete} 
+                      />
+                    ) : (
+                      <PostItem 
+                        key={`post-${item._id}`} 
+                        id={`post-${item._id}`} 
+                        post={item} 
+                        onDelete={handlePostDelete} 
+                      />
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <NotificationPanel />
+          )}
         </div>
       </div>
-
-      <div className="dashboard-tabs">
-        <button className={`tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>
-          Feed
-        </button>
-        <button
-          className={`tab ${activeTab === "notifications" ? "active" : ""}`}
-          onClick={() => setActiveTab("notifications")}
-        >
-          Notifications
-        </button>
-      </div>
-
-      <div className="dashboard-content">
-        {activeTab === "feed" ? (
-          <div className="feed">
-            {loading ? (
-              <div className="loading">Loading content...</div>
-            ) : error ? (
-              <div className="error">{error}</div>
-            ) : combinedContent.length === 0 ? (
-              <div className="empty-state">
-                <p>No posts or polls yet. Be the first to share something!</p>
-              </div>
-            ) : (
-              <div className="content-list">
-                {combinedContent.map((item) =>
-                  item.question ? (
-                    <PollItem key={`poll-${item._id}`} id={`poll-${item._id}`} poll={item} onDelete={handlePollDelete} />
-                  ) : (
-                    <PostItem key={`post-${item._id}`} id={`post-${item._id}`} post={item} onDelete={handlePostDelete} />
-                  ),
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <NotificationPanel />
-        )}
-      </div>
+      <Footer />
     </div>
   )
 }
