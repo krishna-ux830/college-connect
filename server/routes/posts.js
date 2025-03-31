@@ -147,7 +147,7 @@ router.delete("/:id", auth, async (req, res, next) => {
     }
 
     // Delete post
-    await post.remove()
+    await post.deleteOne(); 
 
     // Delete associated notifications
     await Notification.deleteMany({ contentType: "Post", contentId: post._id })
@@ -272,6 +272,28 @@ router.delete("/:id/comment/:comment_id", auth, async (req, res, next) => {
     await post.save()
 
     res.json(post.comments)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// @route   GET /api/posts/user/:username
+// @desc    Get all posts by a specific user
+// @access  Private
+router.get("/user/:username", auth, async (req, res, next) => {
+  try {
+    // Find user by username
+    const user = await User.findOne({ username: req.params.username })
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    // Get all posts by this user
+    const posts = await Post.find({ author: user._id })
+      .sort({ createdAt: -1 })
+      .populate("author", "username profilePic role")
+
+    res.json(posts)
   } catch (error) {
     next(error)
   }

@@ -96,5 +96,56 @@ router.put("/profile", auth, upload.single("profilePic"), async (req, res, next)
   }
 })
 
+// @route   GET /api/users/search
+// @desc    Search users by username
+// @access  Private
+router.get("/search", auth, async (req, res, next) => {
+  try {
+    const { query } = req.query
+
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" })
+    }
+
+    // Search users by username (case-insensitive)
+    const users = await User.find({
+      username: { $regex: query, $options: "i" }
+    })
+      .select("username profilePic role")
+      .limit(10)
+      .lean()
+
+    res.json(users)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// @route   GET /api/users/:username
+// @desc    Get user data by username
+// @access  Private
+router.get("/:username", auth, async (req, res, next) => {
+  try {
+    const user = await User.findOne({ username: req.params.username })
+      .select("-password")
+      .lean()
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    res.json(user)
+  } catch (error) {
+    next(error)
+  }
+})
+
 export default router
 
+
+// The /:username route was placed before the /search route
+// When you made a request to /api/users/search, Express was treating "search" as a username parameter
+// This caused the search functionality to fail
+// I've fixed this by:
+// Moving the /search route before the /:username route
+// Now Express will match /api/users/search correctly before trying to match the username parameter

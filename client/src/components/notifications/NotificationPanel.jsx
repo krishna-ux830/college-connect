@@ -55,9 +55,9 @@ const NotificationPanel = () => {
 
     // Navigate to the specific post
     if (notification.type === "Poll") {
-      navigate(`/dashboard?postId=${notification.content._id}`)
+      navigate(`/?postId=${notification.content._id}`)
     } else if (notification.type === "Post") {
-      navigate(`/dashboard?postId=${notification.content._id}`)
+      navigate(`/?postId=${notification.content._id}`)
     }
   }
 

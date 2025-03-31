@@ -1,11 +1,12 @@
 "use client"
-
+import { FaTrash } from "react-icons/fa";
 import { useState } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "../../contexts/AuthContext"
+import { Link } from "react-router-dom"
 import api from "../../services/api"
 
-const PollItem = ({ poll, id }) => {
+const PollItem = ({ poll, id, onDelete }) => {
   const { user } = useAuth()
   const { _id, author, question, options, votes, createdAt } = poll
   const [selectedOption, setSelectedOption] = useState(null)
@@ -13,9 +14,21 @@ const PollItem = ({ poll, id }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [pollOptions, setPollOptions] = useState(options)
-
   const isFacultyPoll = author.role === "faculty"
+  const isOwner = user?._id === author._id
   const totalVotes = pollOptions.reduce((sum, option) => sum + option.voteCount, 0)
+  
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this poll?")) return
+
+    try {
+      await api.delete(`/api/polls/${_id}`)
+      onDelete(_id) // Call the parent's onDelete function to remove the poll from the list
+    } catch (error) {
+      console.error("Failed to delete poll:", error)
+      alert("Failed to delete poll. Please try again.")
+    }
+  }
 
   const handleVote = async () => {
     if (!selectedOption || hasVoted || loading) return
@@ -45,17 +58,24 @@ const PollItem = ({ poll, id }) => {
 
       <div className="poll-header">
         <div className="poll-author">
-          <div className="author-avatar">
+          <Link to={`/user/${author.username}`} className="author-avatar">
             {author.profilePic ? (
               <img src={author.profilePic || "/placeholder.svg"} alt={author.username} />
             ) : (
               <div className="avatar-placeholder">{author.username.charAt(0).toUpperCase()}</div>
             )}
-          </div>
+          </Link>
           <div className="author-info">
-            <h3>{author.username}</h3>
+            <Link to={`/user/${author.username}`} className="author-name">
+              <h3>{author.username}</h3>
+            </Link>
             <span className="poll-time">{formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
           </div>
+          {isOwner && (
+            <button className="delete-button" onClick={handleDelete}>
+              <FaTrash className="text-xl" />
+            </button>
+          )}
         </div>
       </div>
 

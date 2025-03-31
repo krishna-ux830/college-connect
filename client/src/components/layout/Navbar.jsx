@@ -2,6 +2,7 @@
 
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import SearchBar from "../common/SearchBar"
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth()
@@ -21,6 +22,7 @@ const Navbar = () => {
 
         {isAuthenticated ? (
           <div className="navbar-menu">
+            <SearchBar />
             <Link to="/" className="nav-item">
               Home
             </Link>

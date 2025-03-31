@@ -3,7 +3,7 @@ import Poll from "../models/Poll.js"
 import User from "../models/User.js"
 import { auth } from "../middleware/auth.js"
 import { createNotification } from "../utils/notifications.js"
-
+import Notification from "../models/Notification.js"
 const router = express.Router()
 
 // @route   GET /api/polls
@@ -138,12 +138,34 @@ router.delete("/:id", auth, async (req, res, next) => {
       return res.status(401).json({ message: "User not authorized" })
     }
 
-    // Delete pollait poll.remove();
+    await poll.deleteOne(); 
 
     // Delete associated notifications
     await Notification.deleteMany({ contentType: "Poll", contentId: poll._id })
 
     res.json({ message: "Poll removed" })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// @route   GET /api/polls/user/:username
+// @desc    Get all polls by a specific user
+// @access  Private
+router.get("/user/:username", auth, async (req, res, next) => {
+  try {
+    // Find user by username
+    const user = await User.findOne({ username: req.params.username })
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    // Get all polls by this user
+    const polls = await Poll.find({ author: user._id })
+      .sort({ createdAt: -1 })
+      .populate("author", "username profilePic role")
+
+    res.json(polls)
   } catch (error) {
     next(error)
   }

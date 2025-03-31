@@ -8,6 +8,7 @@ import Dashboard from "./components/dashboard/Dashboard"
 import CreatePost from "./components/posts/CreatePost"
 import CreatePoll from "./components/polls/CreatePoll"
 import Profile from "./components/profile/Profile"
+import UserProfile from "./components/profile/UserProfile"
 import NotFound from "./components/common/NotFound"
 import "./App.css"
 
@@ -33,12 +34,16 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route
-                path="/dashboard"
+                path="/"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/dashboard"
+                element={<Navigate to="/" replace />}
               />
               <Route
                 path="/create-post"
@@ -61,6 +66,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/user/:username"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
                   </ProtectedRoute>
                 }
               />

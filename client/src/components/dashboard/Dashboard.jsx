@@ -17,6 +17,14 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("feed")
   const [searchParams] = useSearchParams()
 
+  const handlePollDelete = (pollId) => {
+    setPolls(polls.filter(poll => poll._id !== pollId))
+  }
+
+  const handlePostDelete = (postId) => {
+    setPosts(posts.filter(post => post._id !== postId))
+  }
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -114,9 +122,9 @@ const Dashboard = () => {
               <div className="content-list">
                 {combinedContent.map((item) =>
                   item.question ? (
-                    <PollItem key={`poll-${item._id}`} id={`poll-${item._id}`} poll={item} />
+                    <PollItem key={`poll-${item._id}`} id={`poll-${item._id}`} poll={item} onDelete={handlePollDelete} />
                   ) : (
-                    <PostItem key={`post-${item._id}`} id={`post-${item._id}`} post={item} />
+                    <PostItem key={`post-${item._id}`} id={`post-${item._id}`} post={item} onDelete={handlePostDelete} />
                   ),
                 )}
               </div>
