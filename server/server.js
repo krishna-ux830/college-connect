@@ -11,8 +11,7 @@ import userRoutes from "./routes/users.js"
 import postRoutes from "./routes/posts.js"
 import pollRoutes from "./routes/polls.js"
 import notificationRoutes from "./routes/notifications.js"
-import Poll from "./models/Poll.js"
-import Post from "./models/Post.js"
+
 // Middleware
 import { errorHandler } from "./middleware/errorHandler.js"
 
