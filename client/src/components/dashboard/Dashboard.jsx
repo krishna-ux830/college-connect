@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import api from "../../services/api"
 import PostItem from "../posts/PostItem"
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState("feed")
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -36,6 +37,31 @@ const Dashboard = () => {
 
     fetchContent()
   }, [])
+
+  // Handle scrolling to specific post when postId is present
+  useEffect(() => {
+    const postId = searchParams.get("postId")
+    if (postId && !loading) {
+      // Switch to feed tab if we're on notifications
+      setActiveTab("feed")
+      
+      // Wait for content to load and then scroll
+      setTimeout(() => {
+        const element = document.getElementById(`post-${postId}`) || document.getElementById(`poll-${postId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" })
+        } else {
+          // If element not found, try again after a longer delay
+          setTimeout(() => {
+            const element = document.getElementById(`post-${postId}`) || document.getElementById(`poll-${postId}`)
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+          }, 1000)
+        }
+      }, 1000)
+    }
+  }, [searchParams, posts, polls, loading])
 
   // Combine and sort posts and polls, with faculty content first
   const combinedContent = [...posts, ...polls].sort((a, b) => {
@@ -88,9 +114,9 @@ const Dashboard = () => {
               <div className="content-list">
                 {combinedContent.map((item) =>
                   item.question ? (
-                    <PollItem key={`poll-${item._id}`} poll={item} />
+                    <PollItem key={`poll-${item._id}`} id={`poll-${item._id}`} poll={item} />
                   ) : (
-                    <PostItem key={`post-${item._id}`} post={item} />
+                    <PostItem key={`post-${item._id}`} id={`post-${item._id}`} post={item} />
                   ),
                 )}
               </div>

@@ -2,13 +2,13 @@
 import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "../../contexts/AuthContext"
 
-const PostItem = ({ post }) => {
+const PostItem = ({ post, id }) => {
   const { user } = useAuth()
   const { _id, author, content, image, createdAt } = post
   const isFacultyPost = author.role === "faculty"
 
   return (
-    <div className={`post-item ${isFacultyPost ? "faculty-post" : ""}`}>
+    <div id={id} className={`post-item ${isFacultyPost ? "faculty-post" : ""}`}>
       {isFacultyPost && <div className="faculty-badge">Faculty</div>}
 
       <div className="post-header">

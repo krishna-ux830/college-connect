@@ -10,8 +10,6 @@ const router = express.Router()
 // @access  Private
 router.get("/", auth, async (req, res, next) => {
   try {
-    console.log("im in")
-    console.log("Registered models:", mongoose.modelNames());
     const notifications = await Notification.find({ user: req.user.id })
     .sort({ priority: -1, createdAt: -1 })
     .populate({
@@ -21,7 +19,6 @@ router.get("/", auth, async (req, res, next) => {
         select: "username profilePic role",
       },
     })
-    console.log(notifications?"yes":"no");
     // Format notifications for client
     const formattedNotifications = notifications.map((notification) => ({
       _id: notification._id,

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
+import { useNavigate } from "react-router-dom"
 import api from "../../services/api"
 
 const NotificationPanel = () => {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -17,7 +19,6 @@ const NotificationPanel = () => {
         setNotifications(response.data)
       } catch (err) {
         setError("Failed to load notifications. Please try again later.")
-        console.error(err)
       } finally {
         setLoading(false)
       }
@@ -46,11 +47,25 @@ const NotificationPanel = () => {
     }
   }
 
+  const handleNotificationClick = (notification) => {
+    // Mark as read if unread
+    if (!notification.read) {
+      markAsRead(notification._id)
+    }
+
+    // Navigate to the specific post
+    if (notification.type === "Poll") {
+      navigate(`/dashboard?postId=${notification.content._id}`)
+    } else if (notification.type === "Post") {
+      navigate(`/dashboard?postId=${notification.content._id}`)
+    }
+  }
+
   const renderNotificationContent = (notification) => {
     const { type, content } = notification
 
     switch (type) {
-      case "post":
+      case "Post":
         return (
           <div className="notification-content">
             <span className="notification-icon post-icon">📝</span>
@@ -60,7 +75,7 @@ const NotificationPanel = () => {
             </div>
           </div>
         )
-      case "poll":
+      case "Poll":
         return (
           <div className="notification-content">
             <span className="notification-icon poll-icon">📊</span>
@@ -71,6 +86,7 @@ const NotificationPanel = () => {
           </div>
         )
       default:
+        console.log("Unknown notification type:", type)
         return (
           <div className="notification-content">
             <span className="notification-icon">🔔</span>
@@ -98,7 +114,8 @@ const NotificationPanel = () => {
             <div
               key={notification._id}
               className={`notification-item ${notification.read ? "read" : "unread"} ${notification.priority ? "priority" : ""}`}
-              onClick={() => !notification.read && markAsRead(notification._id)}
+              onClick={() => handleNotificationClick(notification)}
+              style={{ cursor: "pointer" }}
             >
               {renderNotificationContent(notification)}
               <div className="notification-meta">

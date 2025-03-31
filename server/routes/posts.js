@@ -89,7 +89,7 @@ router.post("/", auth, upload.single("image"), async (req, res, next) => {
     const author = await User.findById(req.user.id).select("username profilePic role")
 
     // Create notifications for all users
-    await createNotification(post._id, "post", author.role === "faculty")
+    await createNotification(post._id, "Post", author.role === "faculty")
 
     // Return post with author details
     const postResponse = {
@@ -150,7 +150,7 @@ router.delete("/:id", auth, async (req, res, next) => {
     await post.remove()
 
     // Delete associated notifications
-    await Notification.deleteMany({ contentType: "post", contentId: post._id })
+    await Notification.deleteMany({ contentType: "Post", contentId: post._id })
 
     res.json({ message: "Post removed" })
   } catch (error) {

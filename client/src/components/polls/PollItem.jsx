@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "../../contexts/AuthContext"
 import api from "../../services/api"
 
-const PollItem = ({ poll }) => {
+const PollItem = ({ poll, id }) => {
   const { user } = useAuth()
   const { _id, author, question, options, votes, createdAt } = poll
   const [selectedOption, setSelectedOption] = useState(null)
@@ -40,7 +40,7 @@ const PollItem = ({ poll }) => {
   }
 
   return (
-    <div className={`poll-item ${isFacultyPoll ? "faculty-poll" : ""}`}>
+    <div id={id} className={`poll-item ${isFacultyPoll ? "faculty-poll" : ""}`}>
       {isFacultyPoll && <div className="faculty-badge">Faculty Poll</div>}
 
       <div className="poll-header">
