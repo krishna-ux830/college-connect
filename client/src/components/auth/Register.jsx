@@ -24,9 +24,18 @@ const Register = () => {
     })
   }
 
+  const validateEmail = (email) => {
+    return email.endsWith("@iiitg.ac.in")
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+
+    // Validate email domain
+    if (!validateEmail(formData.email)) {
+      return setError("Only IIIT Guwahati email addresses (@iiitg.ac.in) are allowed")
+    }
 
     // Validate password match
     if (formData.password !== formData.confirmPassword) {
@@ -56,10 +65,8 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Create an Account</h2>
-
+        <h2>Register</h2>
         {error && <div className="alert alert-error">{error}</div>}
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -72,12 +79,19 @@ const Register = () => {
               required
             />
           </div>
-
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="username@iiitg.ac.in"
+            />
+            <small className="form-text text-muted">Only IIIT Guwahati email addresses are allowed</small>
           </div>
-
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -87,10 +101,8 @@ const Register = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              minLength="6"
             />
           </div>
-
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
@@ -100,26 +112,24 @@ const Register = () => {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              minLength="6"
             />
           </div>
-
           <div className="form-group">
             <label htmlFor="role">Role</label>
-            <select id="role" name="role" value={formData.role} onChange={handleChange} required>
+            <select id="role" name="role" value={formData.role} onChange={handleChange}>
               <option value="student">Student</option>
               <option value="faculty">Faculty</option>
             </select>
           </div>
-
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? "Creating Account..." : "Register"}
-          </button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
+            </button>
+          </div>
         </form>
-
-        <p className="auth-redirect">
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
+        <div className="auth-redirect">
+          Already have an account? <Link to="/login">Login here</Link>
+        </div>
       </div>
     </div>
   )

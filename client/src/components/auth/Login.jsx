@@ -21,14 +21,23 @@ const Login = () => {
     })
   }
 
+  const validateEmail = (email) => {
+    return email.endsWith("@iiitg.ac.in")
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+
+    // Validate email domain
+    if (!validateEmail(formData.email)) {
+      return setError("Only IIIT Guwahati email addresses (@iiitg.ac.in) are allowed")
+    }
+
     setLoading(true)
 
     try {
       const result = await login(formData)
-
       if (result.success) {
         navigate("/")
       } else {
@@ -52,7 +61,16 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="username@iiitg.ac.in"
+            />
+            <small className="form-text text-muted">Only IIIT Guwahati email addresses are allowed</small>
           </div>
 
           <div className="form-group">

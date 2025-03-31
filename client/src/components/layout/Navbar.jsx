@@ -26,7 +26,7 @@ const Navbar = () => {
             <Link to="/" className="nav-item">
               Home
             </Link>
-            <Link to="/profile" className="nav-item">
+            <Link to={`/user/${user?.username}`} className="nav-item">
               Profile
             </Link>
             <div className="nav-item user-menu">
@@ -43,7 +43,7 @@ const Navbar = () => {
                   <small>{user?.role}</small>
                 </div>
                 <Link to="/profile" className="dropdown-item">
-                  My Profile
+                  Edit Profile
                 </Link>
                 <button onClick={handleLogout} className="dropdown-item logout">
                   Logout

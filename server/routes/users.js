@@ -53,12 +53,27 @@ const upload = multer({
 // @access  Private
 router.put("/profile", auth, upload.single("profilePic"), async (req, res, next) => {
   try {
-    const { username } = req.body
+    const { username, email } = req.body
 
     // Find user
     const user = await User.findById(req.user.id)
     if (!user) {
       return res.status(404).json({ message: "User not found" })
+    }
+
+    // Validate email domain if email is being updated
+    if (email && email !== user.email) {
+      if (!email.endsWith("@iiitg.ac.in")) {
+        return res.status(400).json({ message: "Only IIIT Guwahati email addresses (@iiitg.ac.in) are allowed" })
+      }
+
+      // Check if email is already taken
+      const existingUser = await User.findOne({ email })
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        return res.status(400).json({ message: "Email is already registered" })
+      }
+
+      user.email = email
     }
 
     // Update fields
