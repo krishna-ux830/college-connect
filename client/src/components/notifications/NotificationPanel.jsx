@@ -3,54 +3,79 @@
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { useNavigate } from "react-router-dom"
-import api from "../../services/api"
+import { useAuth } from "../../contexts/AuthContext"
+import { useSocket } from "../../contexts/SocketContext"
+import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../../api/notifications"
 
 const NotificationPanel = () => {
+  const { user } = useAuth()
+  const socket = useSocket()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        setLoading(true)
-        const response = await api.get("/api/notifications")
-        setNotifications(response.data)
+        const data = await getNotifications()
+        setNotifications(data)
+        setError(null)
       } catch (err) {
-        setError("Failed to load notifications. Please try again later.")
+        setError("Failed to load notifications")
+        console.error(err)
       } finally {
         setLoading(false)
       }
     }
 
     fetchNotifications()
-
-    // Set up polling for new notifications
-    const interval = setInterval(fetchNotifications, 30000) // Poll every 30 seconds
-
-    return () => clearInterval(interval)
   }, [])
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await api.put(`/api/notifications/${notificationId}/read`)
+  useEffect(() => {
+    if (!socket) return
 
-      // Update local state
-      setNotifications(
-        notifications.map((notification) =>
-          notification._id === notificationId ? { ...notification, read: true } : notification,
-        ),
+    const handleNewNotification = (notification) => {
+      setNotifications(prev => [notification, ...prev])
+    }
+
+    socket.on("newNotification", handleNewNotification)
+
+    return () => {
+      socket.off("newNotification", handleNewNotification)
+    }
+  }, [socket])
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await markNotificationAsRead(notificationId)
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification._id === notificationId
+            ? { ...notification, read: true }
+            : notification
+        )
       )
     } catch (err) {
       console.error("Failed to mark notification as read:", err)
     }
   }
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead()
+      setNotifications(prev =>
+        prev.map(notification => ({ ...notification, read: true }))
+      )
+    } catch (err) {
+      setError("Failed to mark all notifications as read")
+    }
+  }
+
   const handleNotificationClick = (notification) => {
     // Mark as read if unread
     if (!notification.read) {
-      markAsRead(notification._id)
+      handleMarkAsRead(notification._id)
     }
 
     // Navigate to the specific post
@@ -114,7 +139,17 @@ const NotificationPanel = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto">
-      <h2 className="text-lg font-semibold text-text-primary mb-4">Notifications</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-text-primary">Notifications</h2>
+        {notifications.length > 0 && (
+          <button
+            onClick={handleMarkAllAsRead}
+            className="text-sm text-primary hover:text-primary-hover transition-colors"
+          >
+            Mark all as read
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <div className="text-center py-8 text-text-secondary">
@@ -133,21 +168,19 @@ const NotificationPanel = () => {
           {notifications.map((notification) => (
             <div
               key={notification._id}
-              className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                notification.read 
-                  ? "bg-white border-border hover:bg-gray-50" 
-                  : "bg-primary/5 border-primary/20 hover:bg-primary/10"
-              } ${
-                notification.priority 
-                  ? "border-l-4 border-faculty" 
-                  : ""
-              }`}
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${notification.read
+                ? "bg-white border-border hover:bg-gray-50"
+                : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                } ${notification.priority ? "border-l-4 border-faculty" : ""
+                }`}
               onClick={() => handleNotificationClick(notification)}
             >
               {renderNotificationContent(notification)}
               <div className="flex items-center justify-between mt-3">
                 <span className="text-xs text-text-secondary">
-                  {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(notification.createdAt), {
+                    addSuffix: true,
+                  })}
                 </span>
                 {!notification.read && (
                   <span className="w-2 h-2 bg-primary rounded-full"></span>

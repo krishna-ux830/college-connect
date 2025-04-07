@@ -63,14 +63,14 @@ const Navbar = () => {
                 Profile
               </Link>
               <div className="relative user-dropdown">
-                <button 
+                <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center focus:outline-none"
                 >
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-text-primary font-semibold">
                     {user?.profilePic ? (
-                      <img 
-                        src={user.profilePic || "/placeholder.svg"} 
+                      <img
+                        src={user.profilePic || "/placeholder.svg"}
                         alt={user.username}
                         className="w-full h-full object-cover"
                       />
@@ -87,8 +87,8 @@ const Navbar = () => {
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center text-text-primary font-semibold">
                           {user?.profilePic ? (
-                            <img 
-                              src={user.profilePic} 
+                            <img
+                              src={user.profilePic}
                               alt={user.username}
                               className="w-full h-full object-cover"
                             />
@@ -107,8 +107,8 @@ const Navbar = () => {
 
                     {/* Menu Items */}
                     <div className="py-1">
-                      <Link 
-                        to="/profile" 
+                      <Link
+                        to="/profile"
                         className="flex items-center px-4 py-2 text-sm text-text-primary hover:bg-gray-50"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -117,7 +117,7 @@ const Navbar = () => {
                         </svg>
                         Edit Profile
                       </Link>
-                      <button 
+                      <button
                         onClick={() => {
                           setIsDropdownOpen(false)
                           handleLogout()
@@ -136,14 +136,14 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="flex items-center space-x-6">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-text-secondary hover:text-primary transition-colors"
               >
                 Login
               </Link>
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors"
               >
                 Register

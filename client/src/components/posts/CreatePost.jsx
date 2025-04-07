@@ -91,8 +91,8 @@ const CreatePost = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label 
-            htmlFor="content" 
+          <label
+            htmlFor="content"
             className="block text-sm font-medium text-text-primary mb-2"
           >
             What's on your mind?
@@ -109,17 +109,17 @@ const CreatePost = () => {
         </div>
 
         <div>
-          <label 
-            htmlFor="image" 
+          <label
+            htmlFor="image"
             className="block text-sm font-medium text-text-primary mb-2"
           >
             Add an Image (optional)
           </label>
-          <input 
-            type="file" 
-            id="image" 
-            name="image" 
-            onChange={handleChange} 
+          <input
+            type="file"
+            id="image"
+            name="image"
+            onChange={handleChange}
             accept="image/*"
             className="w-full text-sm text-text-secondary
               file:mr-4 file:py-2 file:px-4
@@ -132,8 +132,8 @@ const CreatePost = () => {
 
           {preview && (
             <div className="mt-4 relative">
-              <img 
-                src={preview || "/placeholder.svg"} 
+              <img
+                src={preview || "/placeholder.svg"}
                 alt="Preview"
                 className="w-full max-h-[400px] object-contain rounded-lg"
               />
@@ -152,15 +152,15 @@ const CreatePost = () => {
         </div>
 
         <div className="flex justify-end space-x-4 pt-4">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleCancel}
             className="px-4 py-2 text-sm font-medium text-text-secondary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
