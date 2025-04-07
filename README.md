@@ -5,23 +5,27 @@ A modern social media platform designed specifically for IIIT Guwahati students 
 ## 🌟 Features
 
 - **Authentication & Authorization**
+
   - Secure login and registration system
   - Role-based access control (Student/Faculty)
   - IIIT Guwahati email domain validation (@iiitg.ac.in)
 
 - **User Profiles**
+
   - Customizable profile pictures
   - Profile information management
   - Email and username updates
   - Role-specific features
 
 - **Content Sharing**
+
   - Create and share posts
   - Upload images and media
   - Interactive polls
   - Like and comment functionality
 
 - **Search & Discovery**
+
   - User search functionality
   - Profile discovery
   - Real-time search suggestions
@@ -34,12 +38,14 @@ A modern social media platform designed specifically for IIIT Guwahati students 
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - React.js
 - Tailwind CSS
 - Context API for state management
 - Axios for API requests
 
 ### Backend
+
 - Node.js
 - Express.js
 - MongoDB
@@ -49,6 +55,7 @@ A modern social media platform designed specifically for IIIT Guwahati students 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - MongoDB
 - npm or yarn
@@ -56,12 +63,14 @@ A modern social media platform designed specifically for IIIT Guwahati students 
 ### Installation
 
 1. Clone the repository
+
 ```bash
-git clone https://github.com/4xush/college-connect.git
+git clone https://github.com/krishna-ux830/college-connect.git
 cd college-connect
 ```
 
 2. Install dependencies
+
 ```bash
 # Install backend dependencies
 cd server
@@ -73,6 +82,7 @@ npm install
 ```
 
 3. Set up environment variables
+
 ```bash
 # In the server directory, create a .env file
 cp .env.example .env
@@ -80,6 +90,7 @@ cp .env.example .env
 ```
 
 4. Start the development servers
+
 ```bash
 # Start backend server (from server directory)
 npm run dev
@@ -133,7 +144,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Ayush Kumar** - *Initial work* - [GitHub](https://github.com/4xush)
+- **Krishna Kumar** - _Initial work_ - [GitHub](https://github.com/krishna-ux830)
 
 ## 🙏 Acknowledgments
 
@@ -147,4 +158,4 @@ For support, email ayush.kumar22b@iiitg.ac.in or create an issue in the reposito
 
 ---
 
-Made with ❤️ for IIIT Guwahati 
+Made with ❤️ for IIIT Guwahati
