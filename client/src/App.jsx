@@ -2,8 +2,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { SocketProvider } from "./contexts/SocketContext"
-import PrivateRoute from "./components/auth/PrivateRoute"
 import Navbar from "./components/layout/Navbar"
+import Footer from "./components/layout/Footer"
 import Home from "./pages/Home"
 import Login from "./components/auth/Login"
 import Register from "./components/auth/Register"
@@ -13,15 +13,16 @@ import CreatePoll from "./components/polls/CreatePoll"
 import Profile from "./components/profile/Profile"
 import UserProfile from "./components/profile/UserProfile"
 import NotFound from "./components/common/NotFound"
+import PrivateRoute from "./components/auth/PrivateRoute"
 
-function App() {
+const App = () => {
   return (
     <Router>
       <AuthProvider>
         <SocketProvider>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen flex flex-col">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main className="flex-grow">
               <Routes>
                 <Route path="/home" element={<Home />} />
                 <Route path="/login" element={<Login />} />
@@ -69,6 +70,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+            <Footer />
           </div>
         </SocketProvider>
       </AuthProvider>

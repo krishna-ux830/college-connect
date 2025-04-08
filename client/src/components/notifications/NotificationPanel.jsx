@@ -7,7 +7,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import { useSocket } from "../../contexts/SocketContext"
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../../api/notifications"
 
-const NotificationPanel = () => {
+const NotificationPanel = ({ onMarkAsRead }) => {
   const { user } = useAuth()
   const socket = useSocket()
   const [notifications, setNotifications] = useState([])
@@ -19,7 +19,11 @@ const NotificationPanel = () => {
     const fetchNotifications = async () => {
       try {
         const data = await getNotifications()
-        setNotifications(data)
+        // Filter out notifications created by the current user and sort by date
+        const filteredAndSortedNotifications = data
+          .filter(notification => notification.content.author._id !== user._id)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        setNotifications(filteredAndSortedNotifications)
         setError(null)
       } catch (err) {
         setError("Failed to load notifications")
@@ -29,14 +33,19 @@ const NotificationPanel = () => {
       }
     }
 
-    fetchNotifications()
-  }, [])
+    if (user) {
+      fetchNotifications()
+    }
+  }, [user])
 
   useEffect(() => {
-    if (!socket) return
+    if (!socket || !user) return
 
     const handleNewNotification = (notification) => {
-      setNotifications(prev => [notification, ...prev])
+      // Only add notification if it's not from the current user
+      if (notification.content.author._id !== user._id) {
+        setNotifications(prev => [notification, ...prev])
+      }
     }
 
     socket.on("newNotification", handleNewNotification)
@@ -44,7 +53,7 @@ const NotificationPanel = () => {
     return () => {
       socket.off("newNotification", handleNewNotification)
     }
-  }, [socket])
+  }, [socket, user])
 
   const handleMarkAsRead = async (notificationId) => {
     try {
@@ -56,6 +65,9 @@ const NotificationPanel = () => {
             : notification
         )
       )
+      if (onMarkAsRead) {
+        onMarkAsRead()
+      }
     } catch (err) {
       console.error("Failed to mark notification as read:", err)
     }
@@ -67,6 +79,9 @@ const NotificationPanel = () => {
       setNotifications(prev =>
         prev.map(notification => ({ ...notification, read: true }))
       )
+      if (onMarkAsRead) {
+        onMarkAsRead()
+      }
     } catch (err) {
       setError("Failed to mark all notifications as read")
     }
@@ -141,7 +156,7 @@ const NotificationPanel = () => {
     <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-text-primary">Notifications</h2>
-        {notifications.length > 0 && (
+        {notifications.length > 0 && notifications.some(n => !n.read) && (
           <button
             onClick={handleMarkAllAsRead}
             className="text-sm text-primary hover:text-primary-hover transition-colors"
@@ -168,11 +183,11 @@ const NotificationPanel = () => {
           {notifications.map((notification) => (
             <div
               key={notification._id}
-              className={`p-4 rounded-lg border transition-all cursor-pointer ${notification.read
-                ? "bg-white border-border hover:bg-gray-50"
-                : "bg-primary/5 border-primary/20 hover:bg-primary/10"
-                } ${notification.priority ? "border-l-4 border-faculty" : ""
-                }`}
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                notification.read
+                  ? "bg-white border-border hover:bg-gray-50"
+                  : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+              }`}
               onClick={() => handleNotificationClick(notification)}
             >
               {renderNotificationContent(notification)}

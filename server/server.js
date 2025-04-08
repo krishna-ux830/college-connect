@@ -48,7 +48,10 @@ const io = new Server(httpServer, {
     credentials: true
   },
   path: "/socket.io/",
-  transports: ["websocket", "polling"]
+  transports: ["websocket", "polling"],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  connectTimeout: 45000
 })
 
 // Socket.IO connection handling
@@ -62,8 +65,23 @@ io.on("connection", (socket) => {
   })
 
   // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id)
+  socket.on("disconnect", (reason) => {
+    console.log("Client disconnected:", socket.id, "Reason:", reason)
+  })
+
+  // Handle errors
+  socket.on("error", (error) => {
+    console.error("Socket error:", error)
+  })
+
+  // Handle reconnection attempts
+  socket.on("reconnect_attempt", (attemptNumber) => {
+    console.log("Reconnection attempt:", attemptNumber)
+  })
+
+  // Handle successful reconnection
+  socket.on("reconnect", (attemptNumber) => {
+    console.log("Successfully reconnected after", attemptNumber, "attempts")
   })
 })
 

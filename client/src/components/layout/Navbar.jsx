@@ -1,14 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import { useSocket } from "../../contexts/SocketContext"
+import { getNotifications } from "../../api/notifications"
 import SearchBar from "../common/SearchBar"
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth()
+  const socket = useSocket()
   const navigate = useNavigate()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const notifications = await getNotifications()
+        const unread = notifications.filter(n => !n.read).length
+        setUnreadCount(unread)
+      } catch (err) {
+        console.error("Failed to fetch unread count:", err)
+      }
+    }
+
+    if (user) {
+      fetchUnreadCount()
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewNotification = () => {
+      setUnreadCount(prev => prev + 1)
+    }
+
+    socket.on("newNotification", handleNewNotification)
+
+    return () => {
+      socket.off("newNotification", handleNewNotification)
+    }
+  }, [socket])
 
   const handleLogout = async () => {
     try {
@@ -20,16 +55,17 @@ const Navbar = () => {
   }
 
   // Close dropdown when clicking outside
-  const handleClickOutside = (e) => {
-    if (!e.target.closest('.user-dropdown')) {
-      setIsDropdownOpen(false)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
     }
-  }
 
-  // Add click outside listener
-  useState(() => {
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
 
   const getRoleColor = (role) => {

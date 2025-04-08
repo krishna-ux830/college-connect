@@ -3,20 +3,54 @@
 import { useState, useEffect } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import { useSocket } from "../../contexts/SocketContext"
 import api from "../../services/api"
 import PostItem from "../posts/PostItem"
 import PollItem from "../polls/PollItem"
 import NotificationPanel from "../notifications/NotificationPanel"
 import Footer from "../layout/Footer"
+import { getNotifications } from "../../api/notifications"
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const socket = useSocket()
   const [posts, setPosts] = useState([])
   const [polls, setPolls] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState("feed")
+  const [unreadCount, setUnreadCount] = useState(0)
   const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const notifications = await getNotifications()
+        const unread = notifications.filter(n => !n.read).length
+        setUnreadCount(unread)
+      } catch (err) {
+        console.error("Failed to fetch unread count:", err)
+      }
+    }
+
+    if (user) {
+      fetchUnreadCount()
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewNotification = () => {
+      setUnreadCount(prev => prev + 1)
+    }
+
+    socket.on("newNotification", handleNewNotification)
+
+    return () => {
+      socket.off("newNotification", handleNewNotification)
+    }
+  }, [socket])
 
   const handlePollDelete = (pollId) => {
     setPolls(polls.filter(poll => poll._id !== pollId))
@@ -53,7 +87,7 @@ const Dashboard = () => {
     if (postId && !loading) {
       // Switch to feed tab if we're on notifications
       setActiveTab("feed")
-      
+
       // Wait for content to load and then scroll
       setTimeout(() => {
         const element = document.getElementById(`post-${postId}`) || document.getElementById(`poll-${postId}`)
@@ -90,14 +124,14 @@ const Dashboard = () => {
             Welcome, {user?.username}!
           </h1>
           <div className="flex gap-4">
-            <Link 
-              to="/create-post" 
+            <Link
+              to="/create-post"
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
             >
               Create Post
             </Link>
-            <Link 
-              to="/create-poll" 
+            <Link
+              to="/create-poll"
               className="bg-primary/90 text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
             >
               Create Poll
@@ -106,25 +140,28 @@ const Dashboard = () => {
         </div>
 
         <div className="flex border-b border-border mb-6">
-          <button 
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "feed"
-                ? "text-primary border-b-2 border-primary"
-                : "text-text-secondary hover:text-text-primary"
-            }`}
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "feed"
+              ? "text-primary border-b-2 border-primary"
+              : "text-text-secondary hover:text-text-primary"
+              }`}
             onClick={() => setActiveTab("feed")}
           >
             Feed
           </button>
           <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "notifications"
-                ? "text-primary border-b-2 border-primary"
-                : "text-text-secondary hover:text-text-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === "notifications"
+              ? "text-primary border-b-2 border-primary"
+              : "text-text-secondary hover:text-text-primary"
+              }`}
             onClick={() => setActiveTab("notifications")}
           >
             Notifications
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-primary text-white text-xs font-medium px-2 py-1 rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -149,18 +186,18 @@ const Dashboard = () => {
                 <div className="space-y-6">
                   {combinedContent.map((item) =>
                     item.question ? (
-                      <PollItem 
-                        key={`poll-${item._id}`} 
-                        id={`poll-${item._id}`} 
-                        poll={item} 
-                        onDelete={handlePollDelete} 
+                      <PollItem
+                        key={`poll-${item._id}`}
+                        id={`poll-${item._id}`}
+                        poll={item}
+                        onDelete={handlePollDelete}
                       />
                     ) : (
-                      <PostItem 
-                        key={`post-${item._id}`} 
-                        id={`post-${item._id}`} 
-                        post={item} 
-                        onDelete={handlePostDelete} 
+                      <PostItem
+                        key={`post-${item._id}`}
+                        id={`post-${item._id}`}
+                        post={item}
+                        onDelete={handlePostDelete}
                       />
                     ),
                   )}
@@ -168,7 +205,7 @@ const Dashboard = () => {
               )}
             </div>
           ) : (
-            <NotificationPanel />
+            <NotificationPanel onMarkAsRead={() => setUnreadCount(prev => Math.max(0, prev - 1))} />
           )}
         </div>
       </div>
