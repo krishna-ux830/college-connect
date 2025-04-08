@@ -127,7 +127,7 @@ const PostItem = ({ post, id, onDelete }) => {
         </button>
         <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors text-sm">
           <i className="far fa-comment"></i>
-          <span>Comment</span>
+          {/* <span>Comment</span> */}
         </button>
         <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors text-sm">
           <i className="far fa-share-square"></i>
