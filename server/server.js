@@ -16,6 +16,7 @@ import notificationRoutes from "./routes/notifications.js"
 
 // Middleware
 import { errorHandler } from "./middleware/errorHandler.js"
+import { auth } from "./middleware/auth.js"
 
 dotenv.config()
 
@@ -27,7 +28,7 @@ const __dirname = path.dirname(__filename)
 
 // Configure CORS for both Express and Socket.IO
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"]
 }
@@ -43,16 +44,19 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 // Create Socket.IO server with CORS configuration
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   },
   path: "/socket.io/",
   transports: ["websocket", "polling"],
   pingTimeout: 60000,
   pingInterval: 25000,
-  connectTimeout: 45000
+  connectTimeout: 10000,
 })
+
+// Attach io to app
+app.set("io", io)
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
@@ -81,7 +85,7 @@ io.on("connection", (socket) => {
 
   // Handle successful reconnection
   socket.on("reconnect", (attemptNumber) => {
-    console.log("Successfully reconnected after", attemptNumber, "attempts")
+    console.log("Reconnected after", attemptNumber, "attempts")
   })
 })
 
@@ -103,7 +107,7 @@ app.use(errorHandler)
 
 // Connect to MongoDB and start server
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB")
     httpServer.listen(PORT, () => {

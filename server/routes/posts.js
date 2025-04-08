@@ -56,7 +56,19 @@ const upload = multer({
 // @access  Private
 router.get("/", auth, async (req, res, next) => {
   try {
-    const posts = await Post.find().sort({ createdAt: -1 }).populate("author", "username profilePic role")
+    const posts = await Post.find({
+      isActive: true,
+      $or: [
+        { "timer.enabled": false },
+        {
+          "timer.enabled": true,
+          "timer.expiresAt": { $gt: new Date() },
+        },
+      ],
+    })
+      .populate("author", "username profilePic role")
+      .populate("comments")
+      .sort({ createdAt: -1 })
 
     res.json(posts)
   } catch (error) {
@@ -69,27 +81,45 @@ router.get("/", auth, async (req, res, next) => {
 // @access  Private
 router.post("/", auth, upload.single("image"), async (req, res, next) => {
   try {
-    const { content } = req.body
+    const { content, timer } = req.body
 
     // Validate content
     if (!content && !req.file) {
       return res.status(400).json({ message: "Post must have content or an image" })
     }
 
-    // Create new post
-    const newPost = new Post({
+    const postData = {
       author: req.user.id,
       content: content || "",
       image: req.file ? `/uploads/posts/${req.file.filename}` : null,
-    })
+    }
 
-    const post = await newPost.save()
+    if (timer && timer.enabled) {
+      postData.timer = {
+        enabled: true,
+        duration: timer.duration,
+        expiresAt: new Date(Date.now() + timer.duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
+      }
+    }
+
+    const post = new Post(postData)
+    await post.save()
 
     // Get author details for response
     const author = await User.findById(req.user.id).select("username profilePic role")
 
     // Create notifications for all users
     await createNotification(post._id, "Post", author.role === "faculty")
+
+    // Emit new post notification
+    try {
+      const io = req.app.get("io")
+      if (io) {
+        io.emit("newPost", post)
+      }
+    } catch (error) {
+      console.error("Error emitting new post notification:", error)
+    }
 
     // Return post with author details
     const postResponse = {
@@ -294,6 +324,43 @@ router.get("/user/:username", auth, async (req, res, next) => {
       .populate("author", "username profilePic role")
 
     res.json(posts)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// @route   PATCH /api/posts/:id/timer
+// @desc    Update post timer
+// @access  Private
+router.patch("/:id/timer", auth, async (req, res, next) => {
+  try {
+    const { timer } = req.body
+    const post = await Post.findById(req.params.id)
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" })
+    }
+
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" })
+    }
+
+    if (timer && timer.enabled) {
+      post.timer = {
+        enabled: true,
+        duration: timer.duration,
+        expiresAt: new Date(Date.now() + timer.duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
+      }
+    } else {
+      post.timer = {
+        enabled: false,
+        duration: 24,
+        expiresAt: null,
+      }
+    }
+
+    await post.save()
+    res.json(post)
   } catch (error) {
     next(error)
   }

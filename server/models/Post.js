@@ -41,7 +41,27 @@ const postSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-})
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  timer: {
+    enabled: {
+      type: Boolean,
+      default: false,
+    },
+    duration: {
+      type: Number, // Duration in days
+      default: 1,
+    },
+    expiresAt: {
+      type: Date,
+    },
+  },
+}, { timestamps: true })
+
+// Add index for efficient querying of active posts
+postSchema.index({ isActive: 1, "timer.expiresAt": 1 })
 
 const Post = mongoose.model("Post", postSchema)
 

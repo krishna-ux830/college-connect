@@ -2,178 +2,139 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../contexts/AuthContext"
 import api from "../../services/api"
+import TimerInput from "../common/TimerInput"
 
 const CreatePoll = () => {
-  const [formData, setFormData] = useState({
-    question: "",
-    options: ["", ""], // Start with two empty options
-  })
-  const [error, setError] = useState("")
+  const [question, setQuestion] = useState("")
+  const [options, setOptions] = useState(["", ""])
+  const [timer, setTimer] = useState({ enabled: false, duration: 24 })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const { user } = useAuth()
   const navigate = useNavigate()
 
-  const handleQuestionChange = (e) => {
-    setFormData({
-      ...formData,
-      question: e.target.value,
-    })
-  }
-
   const handleOptionChange = (index, value) => {
-    const updatedOptions = [...formData.options]
-    updatedOptions[index] = value
-
-    setFormData({
-      ...formData,
-      options: updatedOptions,
-    })
+    const newOptions = [...options]
+    newOptions[index] = value
+    setOptions(newOptions)
   }
 
   const addOption = () => {
-    if (formData.options.length < 10) {
-      // Limit to 10 options
-      setFormData({
-        ...formData,
-        options: [...formData.options, ""],
-      })
+    if (options.length < 6) {
+      setOptions([...options, ""])
     }
   }
 
   const removeOption = (index) => {
-    if (formData.options.length > 2) {
-      // Maintain at least 2 options
-      const updatedOptions = formData.options.filter((_, i) => i !== index)
-
-      setFormData({
-        ...formData,
-        options: updatedOptions,
-      })
+    if (options.length > 2) {
+      const newOptions = options.filter((_, i) => i !== index)
+      setOptions(newOptions)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
     setError("")
 
     // Validate form
-    if (!formData.question.trim()) {
-      return setError("Please enter a question")
+    if (!question.trim()) {
+      setError("Please enter a question")
+      setLoading(false)
+      return
     }
 
-    // Check if all options have content
-    const emptyOptions = formData.options.filter((option) => !option.trim())
-    if (emptyOptions.length > 0) {
-      return setError("All options must have content")
+    const validOptions = options.filter(option => option.trim())
+    if (validOptions.length < 2) {
+      setError("Please enter at least two options")
+      setLoading(false)
+      return
     }
-
-    // Check for duplicate options
-    const uniqueOptions = new Set(formData.options.map((opt) => opt.trim()))
-    if (uniqueOptions.size !== formData.options.length) {
-      return setError("All options must be unique")
-    }
-
-    setLoading(true)
 
     try {
-      await api.post("/api/polls", {
-        question: formData.question,
-        options: formData.options.map((text) => ({ text })),
+      const response = await api.post("/api/polls", {
+        question,
+        options: validOptions,
+        timer,
       })
 
       navigate("/")
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create poll. Please try again.")
-      console.error(err)
+      setError(err.response?.data?.message || "Failed to create poll")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCancel = () => {
-    navigate("/")
-  }
-
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 max-w-2xl mx-auto">
-      <h2 className="text-xl font-semibold text-text-primary mb-6">Create a New Poll</h2>
+    <div className="max-w-2xl mx-auto p-4">
+      <h1 className="text-2xl font-bold text-text-primary mb-6">Create Poll</h1>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm mb-6">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="question"
-            className="block text-sm font-medium text-text-primary mb-2"
-          >
+          <label htmlFor="question" className="block text-sm font-medium text-text-secondary mb-1">
             Question
           </label>
           <input
             type="text"
             id="question"
-            value={formData.question}
-            onChange={handleQuestionChange}
-            placeholder="Ask a question..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             required
-            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
           />
         </div>
 
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-text-primary mb-2">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-secondary mb-1">
             Options
           </label>
-          {formData.options.map((option, index) => (
-            <div key={index} className="flex items-center gap-2">
+          {options.map((option, index) => (
+            <div key={index} className="flex items-center space-x-2">
               <input
                 type="text"
                 value={option}
                 onChange={(e) => handleOptionChange(index, e.target.value)}
+                className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={`Option ${index + 1}`}
-                required
-                className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               />
-              {formData.options.length > 2 && (
+              {options.length > 2 && (
                 <button
                   type="button"
                   onClick={() => removeOption(index)}
-                  className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                  className="text-red-500 hover:text-red-600"
                 >
                   Remove
                 </button>
               )}
             </div>
           ))}
-
-          {formData.options.length < 10 && (
+          {options.length < 6 && (
             <button
               type="button"
               onClick={addOption}
-              className="w-full px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+              className="text-primary hover:text-primary-hover text-sm"
             >
-              Add Option
+              + Add Option
             </button>
           )}
         </div>
 
-        <div className="flex justify-end space-x-4 pt-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-4 py-2 text-sm font-medium text-text-secondary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
+        <TimerInput value={timer} onChange={setTimer} />
+
+        {error && (
+          <div className="text-red-500 text-sm">{error}</div>
+        )}
+
+        <div className="flex justify-end">
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
           >
-            {loading ? "Creating Poll..." : "Create Poll"}
+            {loading ? "Creating..." : "Create Poll"}
           </button>
         </div>
       </form>

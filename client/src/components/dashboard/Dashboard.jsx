@@ -157,11 +157,11 @@ const Dashboard = () => {
             onClick={() => setActiveTab("notifications")}
           >
             Notifications
-            {unreadCount > 0 && (
+            {/* {unreadCount > 0 && (
               <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-primary text-white text-xs font-medium px-2 py-1 rounded-full">
                 {unreadCount}
               </span>
-            )}
+            )} */}
           </button>
         </div>
 

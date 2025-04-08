@@ -11,7 +11,16 @@ const router = express.Router()
 // @access  Private
 router.get("/", auth, async (req, res, next) => {
   try {
-    const polls = await Poll.find().sort({ createdAt: -1 }).populate("author", "username profilePic role")
+    const polls = await Poll.find({
+      isActive: true,
+      $or: [
+        { "timer.enabled": false },
+        {
+          "timer.enabled": true,
+          "timer.expiresAt": { $gt: new Date() },
+        },
+      ],
+    }).populate("author", "username profilePic role")
 
     res.json(polls)
   } catch (error) {
@@ -24,7 +33,7 @@ router.get("/", auth, async (req, res, next) => {
 // @access  Private
 router.post("/", auth, async (req, res, next) => {
   try {
-    const { question, options } = req.body
+    const { question, options, timer } = req.body
 
     // Validate input
     if (!question) {
@@ -35,20 +44,31 @@ router.post("/", auth, async (req, res, next) => {
       return res.status(400).json({ message: "At least two options are required" })
     }
 
-    // Create new poll
-    const newPoll = new Poll({
+    const pollData = {
       author: req.user.id,
       question,
-      options,
-    })
+      options: options.map(option => ({ text: option, votes: [] })),
+    }
 
-    const poll = await newPoll.save()
+    if (timer && timer.enabled) {
+      pollData.timer = {
+        enabled: true,
+        duration: timer.duration,
+        expiresAt: new Date(Date.now() + timer.duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
+      }
+    }
+
+    const poll = new Poll(pollData)
+    await poll.save()
 
     // Get author details for response
     const author = await User.findById(req.user.id).select("username profilePic role")
 
     // Create notifications for all users
     await createNotification(poll._id, "Poll", author.role === "faculty")
+
+    // Emit new poll notification
+    req.app.get("io").emit("newPoll", poll)
 
     // Return poll with author details
     const pollResponse = {
@@ -84,10 +104,10 @@ router.get("/:id", auth, async (req, res, next) => {
 // @access  Private
 router.post("/:id/vote", auth, async (req, res, next) => {
   try {
-    const { optionId } = req.body
+    const { optionIndex } = req.body
 
-    if (!optionId) {
-      return res.status(400).json({ message: "Option ID is required" })
+    if (!optionIndex) {
+      return res.status(400).json({ message: "Option index is required" })
     }
 
     const poll = await Poll.findById(req.params.id)
@@ -96,24 +116,20 @@ router.post("/:id/vote", auth, async (req, res, next) => {
       return res.status(404).json({ message: "Poll not found" })
     }
 
+    if (!poll.isActive || (poll.timer.enabled && poll.timer.expiresAt < new Date())) {
+      return res.status(400).json({ message: "Poll is no longer active" })
+    }
+
     // Check if user has already voted
-    if (poll.votes.includes(req.user.id)) {
-      return res.status(400).json({ message: "You have already voted on this poll" })
+    const hasVoted = poll.options.some(option => 
+      option.votes.includes(req.user.id)
+    )
+
+    if (hasVoted) {
+      return res.status(400).json({ message: "You have already voted" })
     }
 
-    // Find the option
-    const optionIndex = poll.options.findIndex((option) => option._id.toString() === optionId)
-
-    if (optionIndex === -1) {
-      return res.status(404).json({ message: "Option not found" })
-    }
-
-    // Increment vote count for the option
-    poll.options[optionIndex].voteCount += 1
-
-    // Add user to votes array
-    poll.votes.push(req.user.id)
-
+    poll.options[optionIndex].votes.push(req.user.id)
     await poll.save()
 
     res.json(poll)
@@ -166,6 +182,43 @@ router.get("/user/:username", auth, async (req, res, next) => {
       .populate("author", "username profilePic role")
 
     res.json(polls)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// @route   PATCH /api/polls/:id/timer
+// @desc    Update poll timer
+// @access  Private
+router.patch("/:id/timer", auth, async (req, res, next) => {
+  try {
+    const { timer } = req.body
+    const poll = await Poll.findById(req.params.id)
+
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" })
+    }
+
+    if (poll.author.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" })
+    }
+
+    if (timer && timer.enabled) {
+      poll.timer = {
+        enabled: true,
+        duration: timer.duration,
+        expiresAt: new Date(Date.now() + timer.duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
+      }
+    } else {
+      poll.timer = {
+        enabled: false,
+        duration: 24,
+        expiresAt: null,
+      }
+    }
+
+    await poll.save()
+    res.json(poll)
   } catch (error) {
     next(error)
   }
